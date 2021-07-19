@@ -13,16 +13,16 @@ public struct BaseMiddleware<Action: Sendable, State: Sendable>: MiddlewareProto
 }
 
 extension MiddlewareProtocol {
-    public func eraseToBaseMiddleware() -> BaseMiddleware<Action, State> {
+    func eraseToBaseMiddleware() -> BaseMiddleware<Action, State> {
         self as? BaseMiddleware ?? BaseMiddleware(tasks: [process])
     }
 
-    public static func +<Middleware: MiddlewareProtocol>(_ lhs: Self, _ rhs: Middleware) -> BaseMiddleware<Action, State>
+    static func +<Middleware: MiddlewareProtocol>(_ lhs: Self, _ rhs: Middleware) -> BaseMiddleware<Action, State>
     where Middleware.Action == Action, Middleware.State == State {
         BaseMiddleware(tasks: lhs.eraseToBaseMiddleware().tasks + rhs.eraseToBaseMiddleware().tasks)
     }
 
-    public func lift<GlobalAction: Sendable, GlobalState: Sendable>(
+    func lift<GlobalAction: Sendable, GlobalState: Sendable>(
         mapInputAction: @escaping (GlobalAction) -> Action?,
         mapOutputAction: @escaping (Action) -> GlobalAction,
         mapState: @escaping (GlobalState) -> State

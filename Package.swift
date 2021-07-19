@@ -6,7 +6,10 @@ import PackageDescription
 let package = Package(
     name: "Penguin",
     platforms: [.macOS("12.0"), .iOS("15.0")],
-    products: [ .library(name: "Penguin", targets: ["Penguin"]) ],
+    products: [
+        .library(name: "Penguin", targets: ["Penguin"]),
+        .library(name: "TestingPenguin", targets: ["TestingPenguin"])
+    ],
     targets: [
         .target(name: "Penguin"),
         .target(name: "TestingPenguin", dependencies: ["Penguin"]),

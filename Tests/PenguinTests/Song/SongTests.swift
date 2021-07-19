@@ -38,4 +38,12 @@ final class SongTests: XCTestCase {
             ]
         )
     }
+    
+    func testExpectingFailure() async {
+        await AssertEvents(in: SongTests.createSongStore(injectedError: NSError())) {
+            Event<SongAction, SongState>.dispatch(.requestFavouriteSong)
+            Event<SongAction, SongState>.expect(.loading)
+            Event<SongAction, SongState>.expect(.failed(NSError()))
+        }
+    }
 }

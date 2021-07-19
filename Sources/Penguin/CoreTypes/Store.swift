@@ -7,7 +7,7 @@ public actor Store<Middleware: MiddlewareProtocol> {
     let middleware: Middleware?
     @MainActor public let currentState: PassthroughElement<State>
     
-    internal init(state: State, middleware: Middleware?, reducer: @escaping Reducer<Action, State>) {
+    init(state: State, middleware: Middleware?, reducer: @escaping Reducer<Action, State>) {
         self.reducer = reducer
         self.state = state
         self.middleware = middleware
