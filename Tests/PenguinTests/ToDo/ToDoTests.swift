@@ -4,10 +4,14 @@ import TestingPenguin
 
 final class ToDoTests: XCTestCase {
     
-    override func setUp() {}
-    
-    func createToDoStore() -> Store<TodoMiddleware> {
-        Store(middleware: TodoMiddleware()) { action, state in
+    static func createToDoStore(
+        dismissedAction: @escaping (TodoAction) -> Void = { _ in },
+        stateForEachLine: @escaping (TodoState) -> Void = { _ in }
+    ) -> Store<TodoMiddleware> {
+        Store(middleware: TodoMiddleware(
+            dismissedAction: dismissedAction,
+            stateForEachLine: stateForEachLine)
+        ) { action, state in
             switch action {
             case .loadToDos: state = .loading
             case .receive(let todo):
@@ -25,7 +29,28 @@ final class ToDoTests: XCTestCase {
     
     func testExample() async throws {
         await AssertStates(
-            in: createToDoStore(),
+            in: ToDoTests.createToDoStore(),
+            for: .loadToDos,
+            [
+                .loading,
+                .received(ToDo.examples(count: 1)),
+                .received(ToDo.examples(count: 2)),
+                .received(ToDo.examples(count: 3))
+            ]
+        )
+    }
+    
+    func testCurrentStateInMiddleware() async throws {
+        var expectedCurrentState: [TodoState] = [
+            .loading,
+            .received(ToDo.examples(count: 1)),
+            .received(ToDo.examples(count: 2))
+        ]
+        
+        await AssertStates(
+            in: ToDoTests.createToDoStore(stateForEachLine: { state in
+                XCTAssertEqual(state, expectedCurrentState.removeFirst())
+            }),
             for: .loadToDos,
             [
                 .loading,

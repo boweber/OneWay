@@ -48,7 +48,7 @@ extension Store where State: Initialisable {
         self.init(state: State.initial, middleware: middleware, reducer: reducer)
     }
     
-    public static func +<M: MiddlewareProtocol>(
+    public nonisolated static func +<M: MiddlewareProtocol>(
         _ lhs: Store<Middleware>,
         _ rhs: Store<M>
     ) -> Store<BaseMiddleware<Action, State>> where Action == M.Action, State == M.State {
@@ -63,7 +63,7 @@ extension Store where State: Initialisable {
 }
 
 extension Store {
-    public func lift<GlobalAction: Sendable, GlobalState>(
+    public nonisolated func lift<GlobalAction: Sendable, GlobalState>(
         input: KeyPath<GlobalAction, Middleware.Action?>,
         state: WritableKeyPath<GlobalState, Middleware.State>,
         output: @escaping (Middleware.Action) -> GlobalAction
