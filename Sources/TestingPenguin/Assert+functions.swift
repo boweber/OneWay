@@ -21,6 +21,27 @@ public func AssertStates<Middleware: MiddlewareProtocol>(
     )
 }
 
+public func AssertEvents<Middleware: MiddlewareProtocol>(
+    in store: Store<Middleware>,
+    file: StaticString = #file,
+    line: UInt = #line,
+    @EventBuilder<Middleware.Action, Middleware.State> _ content: () -> [Event<Middleware.Action, Middleware.State>]
+) async {
+    var events = content()
+    while !events.isEmpty {
+        let event = events.removeFirst()
+        if case let .dispatch(action) = event {
+            let expectedStates: [(Middleware.State) throws -> Void] = events.removeFirstMapableElements { event in
+                guard case .expect(let expectation) = event else { return nil }
+                return expectation
+            }
+            await AssertStates(in: store, for: action, expectedStates, file: file, line: line)
+        } else {
+            preconditionFailure()
+        }
+    }
+}
+
 func AssertStates<Middleware: MiddlewareProtocol>(
     in store: Store<Middleware>,
     for action: Middleware.Action,
@@ -63,26 +84,3 @@ func AssertStates<Middleware: MiddlewareProtocol>(
         XCTFail("Unobserved states: \(expectedStates)", file: file, line: line)
     }
 }
-
-public func AssertEvents<Middleware: MiddlewareProtocol>(
-    in store: Store<Middleware>,
-    file: StaticString = #file,
-    line: UInt = #line,
-    @EventBuilder<Middleware.Action, Middleware.State> _ content: () -> [Event<Middleware.Action, Middleware.State>]
-) async {
-    var events = content()
-    while !events.isEmpty {
-        let event = events.removeFirst()
-        if case let .dispatch(action) = event {
-            let expectedStates: [(Middleware.State) throws -> Void] = events.removeFirstMappedElements { event in
-                guard case .expect(let expectation) = event else { return nil }
-                return expectation
-            }
-            await AssertStates(in: store, for: action, expectedStates, file: file, line: line)
-        } else {
-            preconditionFailure()
-        }
-    }
-}
-
-

@@ -4,18 +4,6 @@ import Penguin
 public enum Event<Action, State> {
     case dispatch(Action)
     case expect((State) throws -> Void)
-    
-    var isExpectedStateChange: Bool {
-        guard case .expect = self else {
-            return false
-        }
-        return true
-    }
-    
-    func dispatch<Middleware: MiddlewareProtocol>(in store: Store<Middleware>) async where Middleware.Action == Action, Middleware.State == State {
-        guard case .dispatch(let action) = self else { return }
-        await store.dispatch(action, priority: nil)
-    }
 }
 
 extension Event {
