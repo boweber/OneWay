@@ -8,9 +8,10 @@ final class SongTests: XCTestCase {
         dismissedAction: @escaping (SongAction) -> Void = { _ in },
         requestingState: @escaping (SongState) -> Void = { _ in },
         injectedError: Error? = nil
-    ) -> Store<SongMiddleware> {
-        Store<SongMiddleware>(
+    ) -> Store<LoggerMiddleware<SongMiddleware, SongLogger>> {
+        Store(
             middleware: SongMiddleware(dismissedAction: dismissedAction, state: requestingState, error: injectedError)
+                .logEvents(with: SongLogger())
         ) { action, mutableState in
                 switch action {
                 case .requestFavouriteSong:
@@ -40,10 +41,11 @@ final class SongTests: XCTestCase {
     }
     
     func testExpectingFailure() async {
-        await AssertEvents(in: SongTests.createSongStore(injectedError: NSError())) {
-            Event<SongAction, SongState>.dispatch(.requestFavouriteSong)
-            Event<SongAction, SongState>.expect(.loading)
-            Event<SongAction, SongState>.expect(.failed(NSError()))
-        }
+        let dummyError = NSError(domain: "Testing", code: 1, userInfo: [:])
+        await Assert(in: SongTests.createSongStore(injectedError: dummyError), [
+            .dispatch(.requestFavouriteSong),
+            .expect(.loading),
+            .expect(.failed(dummyError))
+        ])
     }
 }

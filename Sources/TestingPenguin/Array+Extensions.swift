@@ -1,5 +1,5 @@
 extension Array {
-    mutating func removeFirstMapableElements<NewElement>(_ transform: (Element) -> NewElement?) -> [NewElement] {
+    mutating func removeFirstTransformableElements<NewElement>(_ transform: (Element) -> NewElement?) -> [NewElement] {
         var transformed: [NewElement] = []
         for (index, element) in self.enumerated() {
             if let newElement = transform(element) {

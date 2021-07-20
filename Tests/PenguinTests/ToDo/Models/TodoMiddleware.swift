@@ -12,8 +12,7 @@ struct TodoMiddleware: MiddlewareProtocol {
         }
         let url = Bundle.module.url(forResource: "Todo", withExtension: "json")!
         do {
-            let handler = try FileHandle(forReadingFrom: url)
-            for try await line in handler.bytes.lines {
+            for try await line in url.lines {
                 stateForEachLine(await currentState())
                 let todo = try JSONDecoder().decode(ToDo.self, from: Data(line.utf8))
                 await dispatch(.receive(todo))

@@ -26,4 +26,14 @@ final class PenguinTests: XCTestCase {
             ]
         )
     }
+    
+    func testGettingToDosInGlobalContext() async {
+        await Assert(in: createStore(), [
+            .dispatch(.todoAction(.loadToDos)),
+            .expect(.loading, in: \.todo),
+            .expect(.received(ToDo.examples(count: 1)), in: \.todo),
+            .expect(.received(ToDo.examples(count: 2)), in: \.todo),
+            .expect(.received(ToDo.examples(count: 3)), in: \.todo)
+        ])
+    }
 }

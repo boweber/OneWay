@@ -13,7 +13,7 @@ public func AssertStates<Middleware: MiddlewareProtocol>(
         for: action,
         states.map { expectedState -> (Middleware.State) throws -> Void in
             { observedState in
-                XCTAssertEqual(expectedState, observedState)
+                XCTAssertEqual(expectedState, observedState, file: file, line: line)
             }
         },
         file: file,
@@ -21,17 +21,17 @@ public func AssertStates<Middleware: MiddlewareProtocol>(
     )
 }
 
-public func AssertEvents<Middleware: MiddlewareProtocol>(
+public func Assert<Middleware: MiddlewareProtocol>(
     in store: Store<Middleware>,
+    _ runningEvents: [Event<Middleware.Action, Middleware.State>],
     file: StaticString = #file,
-    line: UInt = #line,
-    @EventBuilder<Middleware.Action, Middleware.State> _ content: () -> [Event<Middleware.Action, Middleware.State>]
+    line: UInt = #line
 ) async {
-    var events = content()
+    var events = runningEvents
     while !events.isEmpty {
         let event = events.removeFirst()
         if case let .dispatch(action) = event {
-            let expectedStates: [(Middleware.State) throws -> Void] = events.removeFirstMapableElements { event in
+            let expectedStates: [(Middleware.State) throws -> Void] = events.removeFirstTransformableElements { event in
                 guard case .expect(let expectation) = event else { return nil }
                 return expectation
             }

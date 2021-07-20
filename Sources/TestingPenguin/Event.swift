@@ -1,5 +1,4 @@
 import XCTest
-import Penguin
 
 public enum Event<Action, State> {
     case dispatch(Action)
