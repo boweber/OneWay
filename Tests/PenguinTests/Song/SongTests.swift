@@ -16,7 +16,7 @@ final class SongTests: XCTestCase {
                 switch action {
                 case .requestFavouriteSong:
                     mutableState = .loading
-                case .receive(let song):
+                case .load(let song):
                     mutableState = .loaded(song)
                 case .fail(let error):
                     mutableState = .failed(error)

@@ -1,6 +1,5 @@
 enum SongAction: Sendable {
     case requestFavouriteSong
-    case receive(Song)
+    case load(Song)
     case fail(Error)
 }
-

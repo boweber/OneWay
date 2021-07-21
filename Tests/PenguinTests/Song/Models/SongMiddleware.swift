@@ -15,7 +15,7 @@ struct SongMiddleware: MiddlewareProtocol {
         if let error = error {
             await dispatch(.fail(error))
         } else {
-            await dispatch(.receive(.blueworld))
+            await dispatch(.load(.blueworld))
         }
     }
 }

@@ -50,7 +50,7 @@ public actor Store<Middleware: MiddlewareProtocol> {
         cancellableTasks[taskid] = nil
     }
     
-    public func cancelAll() {
+    public func cancelAllRunningTasks() {
         for key in cancellableTasks.keys {
             cancel(key)
         }
