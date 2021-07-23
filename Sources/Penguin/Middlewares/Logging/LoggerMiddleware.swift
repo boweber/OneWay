@@ -9,6 +9,10 @@ where Logger.Action == Middleware.Action, Logger.State == Middleware.State {
         dispatch: @Sendable @escaping (Middleware.Action) async -> Void
     ) async {
         logger.log(action: action, during: .startsProcessing)
+        defer {
+            logger.log(action: action, during: .stoppedProcessing)
+        }
+        
         let _dispatch: @Sendable (Action) async -> Void = { dispatchingAction in
             logger.log(action: dispatchingAction, during: .dispatching)
             await dispatch(dispatchingAction)
@@ -20,7 +24,6 @@ where Logger.Action == Middleware.Action, Logger.State == Middleware.State {
             return currentState
         }
         await middleware.process(action, in: _currentState, dispatch: _dispatch)
-        logger.log(action: action, during: .stoppedProcessing)
     }
 }
 

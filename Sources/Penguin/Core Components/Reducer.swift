@@ -31,7 +31,8 @@
 /// }
 /// ```
 /// . An important point of the reducer is not to handle any async functionality. For example, the above reducer does not perform the favourite song request by itself. These types
-/// of tasks are the responsibilities of an accompanying middleware, which dispatches the actions like `.load(someFavouriteSongExample)` and `.fail(someError)`.
+/// of tasks are the responsibilities of an accompanying middleware, which would dispatch actions like `.load(someFavouriteSongExample)` and `.fail(someError)`
+/// (depending on the result) after performing the task.
 ///
 /// For more, see [Writing Reducers](https://redux.js.org/tutorials/fundamentals/part-3-state-actions-reducers#writing-reducers)
 /// from *redux.js.org*. Note, the reducer does not create a new state as *redux.js.org* encourages, but it rather mutates the state due to performance reasons.

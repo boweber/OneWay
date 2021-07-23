@@ -38,6 +38,7 @@ public actor Store<Middleware: MiddlewareProtocol> {
     public func dispatch(@Tracing _ action: Action, priority: TaskPriority? = nil) -> TaskID {
         let id = IDFactory.nextID
         cancellableTasks[id] = Task(priority: priority) {
+            defer { cancellableTasks[id] = nil }
             await updateState(with: action)
             guard !Task.isCancelled else { return }
             await middleware?.process(action, in: getState, dispatch: updateState)
