@@ -16,12 +16,12 @@ extension MiddlewareProtocol {
     func eraseToBaseMiddleware() -> BaseMiddleware<Action, State> {
         self as? BaseMiddleware ?? BaseMiddleware(tasks: [process])
     }
-
+    
     static func +<Middleware: MiddlewareProtocol>(_ lhs: Self, _ rhs: Middleware) -> BaseMiddleware<Action, State>
     where Middleware.Action == Action, Middleware.State == State {
         BaseMiddleware(tasks: lhs.eraseToBaseMiddleware().tasks + rhs.eraseToBaseMiddleware().tasks)
     }
-
+    
     func lift<GlobalAction: Sendable, GlobalState: Sendable>(
         mapGlobalAction: @escaping (GlobalAction) -> Action?,
         mapAction: @escaping (Action) -> GlobalAction,
@@ -31,14 +31,14 @@ extension MiddlewareProtocol {
             tasks: eraseToBaseMiddleware()
                 .tasks
                 .map { (task: @escaping MiddlewareProcess<Action, State>) -> MiddlewareProcess<GlobalAction, GlobalState> in
-            { globalAction, globalState, dispatchGlobalAction in
-                guard let action = mapGlobalAction(globalAction) else { return }
-                let dispatchLocalAction: @Sendable (Action) async -> Void = { dispatchAction in
-                    await dispatchGlobalAction(mapAction(dispatchAction))
+                    { globalAction, globalState, dispatchGlobalAction in
+                        guard let action = mapGlobalAction(globalAction) else { return }
+                        let dispatchLocalAction: @Sendable (Action) async -> Void = { dispatchAction in
+                            await dispatchGlobalAction(mapAction(dispatchAction))
+                        }
+                        await task(action, { await mapGlobalState(globalState()) }, dispatchLocalAction)
+                    }
                 }
-                await task(action, { await mapGlobalState(globalState()) }, dispatchLocalAction)
-            }
-        }
         )
     }
     
@@ -51,7 +51,9 @@ extension MiddlewareProtocol {
         }
     }
     
-    public func liftUnusedState<GlobalState: Sendable>() -> BaseMiddleware<Action, GlobalState> where State == Never {
+    public func liftUnusedState<GlobalState: Sendable>(
+        to globalState: GlobalState.Type = GlobalState.self
+    ) -> BaseMiddleware<Action, GlobalState> where State == Never {
         lift(mapGlobalAction: { $0 }, mapAction: { $0 })
     }
 }
