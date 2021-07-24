@@ -40,7 +40,6 @@ public actor Store<Middleware: MiddlewareProtocol> {
         cancellableTasks[id] = Task(priority: priority) {
             defer { cancellableTasks[id] = nil }
             await updateState(with: action)
-            guard !Task.isCancelled else { return }
             await middleware?.process(action, in: getState, dispatch: updateState)
         }
         return id
@@ -90,9 +89,9 @@ extension Store {
         Store<BaseMiddleware<GlobalAction, GlobalState>>(
             state: GlobalState.initial,
             middleware: middleware?.lift(
-                mapInputAction: { $0[keyPath: input] },
-                mapOutputAction: output,
-                mapState: { $0[keyPath: state] }
+                mapGlobalAction: { $0[keyPath: input] },
+                mapAction: output,
+                mapGlobalState: { $0[keyPath: state] }
             )) { globalAction, mutableState in
             guard let action = globalAction[keyPath: input] else { return }
             self.reducer(action, &mutableState[keyPath: state])

@@ -23,22 +23,35 @@ extension MiddlewareProtocol {
     }
 
     func lift<GlobalAction: Sendable, GlobalState: Sendable>(
-        mapInputAction: @escaping (GlobalAction) -> Action?,
-        mapOutputAction: @escaping (Action) -> GlobalAction,
-        mapState: @escaping (GlobalState) -> State
+        mapGlobalAction: @escaping (GlobalAction) -> Action?,
+        mapAction: @escaping (Action) -> GlobalAction,
+        mapGlobalState: @escaping (GlobalState) -> State
     ) -> BaseMiddleware<GlobalAction, GlobalState> {
         BaseMiddleware<GlobalAction, GlobalState>(
             tasks: eraseToBaseMiddleware()
                 .tasks
                 .map { (task: @escaping MiddlewareProcess<Action, State>) -> MiddlewareProcess<GlobalAction, GlobalState> in
             { globalAction, globalState, dispatchGlobalAction in
-                guard let action = mapInputAction(globalAction) else { return }
+                guard let action = mapGlobalAction(globalAction) else { return }
                 let dispatchLocalAction: @Sendable (Action) async -> Void = { dispatchAction in
-                    await dispatchGlobalAction(mapOutputAction(dispatchAction))
+                    await dispatchGlobalAction(mapAction(dispatchAction))
                 }
-                await task(action, { await mapState(globalState()) }, dispatchLocalAction)
+                await task(action, { await mapGlobalState(globalState()) }, dispatchLocalAction)
             }
         }
         )
+    }
+    
+    func lift<GlobalAction: Sendable, GlobalState: Sendable>(
+        mapGlobalAction: @escaping (GlobalAction) -> Action?,
+        mapAction: @escaping (Action) -> GlobalAction
+    ) -> BaseMiddleware<GlobalAction, GlobalState> where State == Never {
+        self.lift(mapGlobalAction: mapGlobalAction, mapAction: mapAction) { _ in
+            fatalError()
+        }
+    }
+    
+    public func liftUnusedState<GlobalState: Sendable>() -> BaseMiddleware<Action, GlobalState> where State == Never {
+        lift(mapGlobalAction: { $0 }, mapAction: { $0 })
     }
 }
