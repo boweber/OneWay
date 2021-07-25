@@ -51,7 +51,7 @@ extension MiddlewareProtocol {
         }
     }
     
-    public func liftUnusedState<GlobalState: Sendable>(
+    func liftUnusedState<GlobalState: Sendable>(
         to globalState: GlobalState.Type = GlobalState.self
     ) -> BaseMiddleware<Action, GlobalState> where State == Never {
         lift(mapGlobalAction: { $0 }, mapAction: { $0 })

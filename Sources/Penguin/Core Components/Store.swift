@@ -21,6 +21,14 @@ public actor Store<Middleware: MiddlewareProtocol> {
         self.init(state: initialState, middleware: middleware, reducer: reducer)
     }
     
+    public convenience init<M: MiddlewareProtocol, A, S>(
+        initialState: State,
+        middleware: M,
+        reducer: @escaping Reducer<A, S>
+    ) where Middleware == BaseMiddleware<A, S>, M.State == Never, M.Action == A {
+        self.init(state: initialState, middleware: middleware.liftUnusedState(to: S.self), reducer: reducer)
+    }
+    
     public convenience init<A, S>(initialState: S, reducer: @escaping Reducer<A, S>) where Middleware == PlaceholderMiddleware<A, S> {
         self.init(state: initialState, middleware: nil, reducer: reducer)
     }
@@ -64,6 +72,13 @@ extension Store where State: Initialisable {
     
     public convenience init(middleware: Middleware, reducer: @escaping Reducer<Action, State>) {
         self.init(state: State.initial, middleware: middleware, reducer: reducer)
+    }
+    
+    public convenience init<M: MiddlewareProtocol, A, S>(
+        middleware: M,
+        reducer: @escaping Reducer<A, S>
+    ) where Middleware == BaseMiddleware<A, S>, M.State == Never, M.Action == A {
+        self.init(initialState: State.initial, middleware: middleware, reducer: reducer)
     }
     
     public nonisolated static func +<M: MiddlewareProtocol>(
