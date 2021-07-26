@@ -1,4 +1,4 @@
-import Penguin
+import OneWay
 
 struct SongMiddleware: MiddlewareProtocol {
     let dismissedAction: (SongAction) -> Void

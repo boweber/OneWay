@@ -1,4 +1,4 @@
-import Penguin
+import OneWay
 
 struct SongLogger: LoggerProtocol {
     func log(currentState: SongState) {

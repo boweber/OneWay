@@ -1,6 +1,6 @@
 import XCTest
-import TestingPenguin
-@testable import Penguin
+import TestingOneWay
+@testable import OneWay
 
 final class ToDoTests: XCTestCase {
     

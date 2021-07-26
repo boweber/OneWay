@@ -1,4 +1,4 @@
-import Penguin
+import OneWay
 import XCTest
 
 public func AssertStates<Middleware: MiddlewareProtocol>(

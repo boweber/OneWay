@@ -1,7 +1,7 @@
-/// A `Reducer` is a function that updates the current state based on an action.
+/// A ``Reducer`` is a function that updates the current state based on an action.
 ///
 /// As an example, consider the situation requesting a favourite song. The type `Action` might be
-/// ```
+/// ```swift
 /// enum SongAction {
 ///     case requestFavouriteSong
 ///     case load(Song)
@@ -9,7 +9,7 @@
 /// }
 /// ```
 /// with the corresponding `State` type
-/// ```
+/// ```swift
 /// enum SongState {
 ///     case initial
 ///     case loading
@@ -17,8 +17,8 @@
 ///     case failed(Error)
 /// }
 /// ```
-/// . The accompanying  `Reducer` can be defined as
-/// ```
+/// . The accompanying  ``Reducer`` can be defined as
+/// ```swift
 /// let songreducer: Reducer<SongAction, SongState> = { action, mutableState in
 ///     switch action {
 ///     case .requestFavouriteSong:

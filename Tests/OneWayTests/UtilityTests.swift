@@ -1,5 +1,5 @@
 import XCTest
-@testable import Penguin
+@testable import OneWay
 
 class UtilityTests: XCTestCase {
     func testIDFactory() {

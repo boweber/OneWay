@@ -4,18 +4,18 @@
 import PackageDescription
 
 let package = Package(
-    name: "Penguin",
+    name: "OneWay",
     platforms: [.macOS("12.0"), .iOS("15.0")],
     products: [
-        .library(name: "Penguin", targets: ["Penguin"]),
-        .library(name: "TestingPenguin", targets: ["TestingPenguin"])
+        .library(name: "OneWay", targets: ["OneWay"]),
+        .library(name: "TestingOneWay", targets: ["TestingOneWay"])
     ],
     targets: [
-        .target(name: "Penguin"),
-        .target(name: "TestingPenguin", dependencies: ["Penguin"]),
+        .target(name: "OneWay"),
+        .target(name: "TestingOneWay", dependencies: ["OneWay"]),
         .testTarget(
-            name: "PenguinTests",
-            dependencies: ["Penguin", "TestingPenguin"],
+            name: "OneWayTests",
+            dependencies: ["OneWay", "TestingOneWay"],
             resources: [
                 .copy("ToDo/Resources/Todo.json")
             ]

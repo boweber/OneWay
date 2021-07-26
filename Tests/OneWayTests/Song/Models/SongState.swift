@@ -1,4 +1,4 @@
-import Penguin
+import OneWay
 
 enum SongState: Equatable, Initialisable, Sendable {
     case initial

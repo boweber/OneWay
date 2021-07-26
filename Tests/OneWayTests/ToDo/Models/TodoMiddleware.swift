@@ -1,5 +1,5 @@
 import Foundation
-import Penguin
+import OneWay
 
 struct TodoMiddleware: MiddlewareProtocol {
     let dismissedAction: (TodoAction) -> Void

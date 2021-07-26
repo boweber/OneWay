@@ -1,4 +1,4 @@
-import Penguin
+import OneWay
 
 struct GlobalState: Equatable, Sendable {
     var todo: TodoState

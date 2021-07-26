@@ -1,8 +1,8 @@
 import XCTest
-import TestingPenguin
-@testable import Penguin
+import TestingOneWay
+@testable import OneWay
 
-final class PenguinTests: XCTestCase {
+final class OneWayTests: XCTestCase {
     
     func createStore(
         injectedError: Error? = nil

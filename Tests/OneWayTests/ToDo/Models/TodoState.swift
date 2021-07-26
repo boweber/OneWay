@@ -1,4 +1,4 @@
-import Penguin
+import OneWay
 
 enum TodoState: Sendable, Initialisable, Equatable {
     case initial
