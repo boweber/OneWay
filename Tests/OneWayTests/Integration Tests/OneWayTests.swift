@@ -36,4 +36,27 @@ final class OneWayTests: XCTestCase {
             .expect(.received(ToDo.examples(count: 3)), in: \.todo)
         ])
     }
+    
+    func testConcurrentDispatches() async {
+        let store = createStore()
+        let receivedStateChanges: Task<[GlobalState], Never> = Task {
+            var states: [GlobalState] = []
+            for await state in store.currentState {
+                states.append(state)
+                if states.count == 6 { break }
+            }
+            return states
+        }
+        Task(priority: .background) {
+            await store.dispatch(.todoAction(.loadToDos), priority: Task.currentPriority)
+        }
+        Task(priority: .high) {
+            await store.dispatch(.songAction(.requestFavouriteSong), priority: Task.currentPriority)
+        }
+        
+        let storeChanges = await receivedStateChanges.value
+        XCTAssertEqual(6, storeChanges.count)
+        XCTAssertEqual(storeChanges.last?.song, SongState.loaded(.blueworld))
+        XCTAssertEqual(storeChanges.last?.todo, TodoState.received(ToDo.examples))
+    }
 }

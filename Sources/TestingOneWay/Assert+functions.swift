@@ -46,8 +46,8 @@ func AssertStates<Middleware: MiddlewareProtocol>(
     in store: Store<Middleware>,
     for action: Middleware.Action,
     _ states: [(Middleware.State) throws -> Void],
-    file: StaticString = #file,
-    line: UInt = #line
+    file: StaticString,
+    line: UInt
 ) async {
     guard !states.isEmpty else {
         preconditionFailure("The function \(#function) requires at least on observable state.")
@@ -58,7 +58,7 @@ func AssertStates<Middleware: MiddlewareProtocol>(
         var observedStatesCount = 0
         for await observedState in store.currentState {
             observedStates.append(observedState)
-            observedStatesCount = observedStatesCount.advanced(by: 1)
+            observedStatesCount.increment()
             if observedStatesCount == states.count {
                 break
             }

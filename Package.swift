@@ -10,9 +10,16 @@ let package = Package(
         .library(name: "OneWay", targets: ["OneWay"]),
         .library(name: "TestingOneWay", targets: ["TestingOneWay"])
     ],
+    dependencies: [
+        .package(name: "Benchmark", url: "https://github.com/google/swift-benchmark", from: "0.1.0")
+    ],
     targets: [
         .target(name: "OneWay"),
         .target(name: "TestingOneWay", dependencies: ["OneWay"]),
+        .executableTarget(name: "OneWayBenchmark", dependencies: [
+            .product(name: "Benchmark", package: "Benchmark"),
+            "OneWay"
+        ]),
         .testTarget(
             name: "OneWayTests",
             dependencies: ["OneWay", "TestingOneWay"],
