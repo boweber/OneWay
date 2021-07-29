@@ -21,8 +21,7 @@ public struct Tracing<Element> {
             filePath: filePath,
             line: line,
             column: column,
-            function: function,
-            additionalDetails: additionalDetails
+            function: function
         )
     }
     #else
