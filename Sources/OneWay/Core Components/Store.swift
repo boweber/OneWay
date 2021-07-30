@@ -1,10 +1,10 @@
 public actor Store<Middleware: MiddlewareProtocol> {
     public typealias State = Middleware.State
     public typealias Action = Middleware.Action
-    public typealias TaskID = Int
+    public typealias DispatchID = Int
     
     private var state: State
-    private var cancellableTasks: [TaskID: Task<Void, Never>]
+    private var cancellableTasks: [DispatchID: Task<Void, Never>]
     let reducer: Reducer<Action, State>
     let middleware: Middleware?
     @MainActor public let currentState: PassthroughElement<State>
@@ -38,24 +38,21 @@ public actor Store<Middleware: MiddlewareProtocol> {
         reducer(action, &state)
         currentState.yield(state)
     }
-    
-    @Sendable
-    private func getState() async -> State { state }
-    
+
     @discardableResult
-    public func dispatch(@Tracing _ action: Action, priority: TaskPriority? = nil) -> TaskID {
+    public func dispatch(@Tracing _ action: Action, priority: TaskPriority? = nil) -> DispatchID {
         let id = IDFactory.nextID
         cancellableTasks[id] = Task(priority: priority) {
             defer { cancellableTasks[id] = nil }
             await updateState(with: action)
-            await middleware?.process(action, in: getState, dispatch: updateState)
+            await middleware?.process(action, in: { @Sendable in await self.state }, dispatch: updateState)
         }
         return id
     }
     
-    public func cancel(_ taskid: TaskID) {
-        cancellableTasks[taskid]?.cancel()
-        cancellableTasks[taskid] = nil
+    public func cancel(_ dispatchID: DispatchID) {
+        cancellableTasks[dispatchID]?.cancel()
+        cancellableTasks[dispatchID] = nil
     }
     
     public func cancelAllRunningTasks() {
