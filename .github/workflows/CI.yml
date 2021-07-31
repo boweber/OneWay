@@ -7,16 +7,18 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-    name: Swift ${{ matrix.swift }} on ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        swift: [swiftlang/swift:nightly-5.5]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v2
-      - name: Build
-        run: swift build -Xswiftc -suppress-warnings
-      - name: Run tests
-        run: swift test -Xswiftc -suppress-warnings
+  linux:
+      runs-on: ubuntu-latest
+      strategy:
+        fail-fast: false
+        matrix:
+          image:
+            - swiftlang/swift:nightly-5.5
+      container: ${{ matrix.image }}
+      env:
+        LOG_LEVEL: info
+      steps:  
+        - name: Checkout OneWay
+          uses: actions/checkout@v2
+        - name: Run base tests with Thread Sanitizer
+          run: swift test --enable-test-discovery --sanitize=thread
