@@ -18,5 +18,9 @@ public protocol MiddlewareProtocol {
     ///     - action: An incoming action to process.
     ///     - currentState: A closure to get at any time the current state.
     ///     - dispatch: A closure to send actions, which can be based on the result of an async task.
-    func process(_ action: Action, in currentState: @Sendable @escaping () async -> State, dispatch: @Sendable @escaping (Action) async -> Void) async
+    func process(
+        _ action: Action,
+        in currentState: @Sendable @escaping () async -> State,
+        dispatch: @Sendable @escaping (Action) async -> Void
+    ) async
 }

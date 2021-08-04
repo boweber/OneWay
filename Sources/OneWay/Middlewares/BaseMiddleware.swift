@@ -1,11 +1,15 @@
 public struct BaseMiddleware<Action: Sendable, State: Sendable>: MiddlewareProtocol {
-    let tasks: [MiddlewareProcess<Action, State>]
+    let processes: [MiddlewareProcess<Action, State>]
     
-    public func process(_ action: Action, in currentState: @Sendable @escaping () async -> State, dispatch: @Sendable @escaping (Action) async -> Void) async {
+    public func process(
+        _ action: Action,
+        in currentState: @Sendable @escaping () async -> State,
+        dispatch: @Sendable @escaping (Action) async -> Void
+    ) async {
         await withTaskGroup(of: Void.self) { group in
-            for task in tasks {
-                group.async {
-                    await task(action, currentState, dispatch)
+            processes.forEach { process in
+                group.addTask {
+                    await process(action, currentState, dispatch)
                 }
             }
         }
@@ -14,12 +18,12 @@ public struct BaseMiddleware<Action: Sendable, State: Sendable>: MiddlewareProto
 
 extension MiddlewareProtocol {
     func eraseToBaseMiddleware() -> BaseMiddleware<Action, State> {
-        self as? BaseMiddleware ?? BaseMiddleware(tasks: [process])
+        self as? BaseMiddleware ?? BaseMiddleware(processes: [process])
     }
     
     static func +<Middleware: MiddlewareProtocol>(_ lhs: Self, _ rhs: Middleware) -> BaseMiddleware<Action, State>
     where Middleware.Action == Action, Middleware.State == State {
-        BaseMiddleware(tasks: lhs.eraseToBaseMiddleware().tasks + rhs.eraseToBaseMiddleware().tasks)
+        BaseMiddleware(processes: lhs.eraseToBaseMiddleware().processes + rhs.eraseToBaseMiddleware().processes)
     }
     
     func lift<GlobalAction: Sendable, GlobalState: Sendable>(
@@ -28,8 +32,8 @@ extension MiddlewareProtocol {
         mapGlobalState: @escaping (GlobalState) -> State
     ) -> BaseMiddleware<GlobalAction, GlobalState> {
         BaseMiddleware<GlobalAction, GlobalState>(
-            tasks: eraseToBaseMiddleware()
-                .tasks
+            processes: eraseToBaseMiddleware()
+                .processes
                 .map { (task: @escaping MiddlewareProcess<Action, State>) -> MiddlewareProcess<GlobalAction, GlobalState> in
                     { globalAction, globalState, dispatchGlobalAction in
                         guard let action = mapGlobalAction(globalAction) else { return }
