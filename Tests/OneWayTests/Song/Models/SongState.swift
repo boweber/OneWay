@@ -1,6 +1,4 @@
-import OneWay
-
-enum SongState: Equatable, Initialisable, Sendable {
+enum SongState: Equatable, Sendable {
     case initial
     case loading
     case loaded(Song)

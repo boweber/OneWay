@@ -4,21 +4,28 @@ import TestingOneWay
 
 final class OneWayTests: XCTestCase {
     
-    func createStore(
+    func createPipeline(
         injectedError: Error? = nil
-    ) -> Store<BaseMiddleware<GlobalAction, GlobalState>> {
-        SongTests
-            .createSongStore(injectedError: injectedError)
-            .lift(input: \GlobalAction.songAction, state: \GlobalState.song, output: GlobalAction.songAction) +
-        ToDoTests
-            .createToDoStore()
-            .lift(input: \GlobalAction.todoAction, state: \GlobalState.todo, output: GlobalAction.todoAction)
-            
+    ) -> Pipeline<
+        ComposedMiddleware<
+            LiftedMiddleware<GlobalAction, GlobalState, LoggerMiddleware<SongMiddleware, SongLogger>>,
+            LiftedMiddleware<GlobalAction, GlobalState, TodoMiddleware>
+        >
+    > {
+        Pipeline {
+            SongTests
+                .createSongPipeline(injectedError: injectedError)
+                .lifted(input: \GlobalAction.songAction, output: GlobalAction.songAction, state: \GlobalState.song)
+            ToDoTests
+                .createToDoPipeline()
+                .lifted(input: \GlobalAction.todoAction, output: GlobalAction.todoAction, state: \GlobalState.todo)
+        }
     }
     
     func testGettingFavouriteSongInGlobalContext() async {
         await AssertStates(
-            in: createStore(),
+            in: createPipeline(),
+            with: .initial,
             for: .songAction(.requestFavouriteSong),
             [
                 .init(todo: .initial, song: .loading),
@@ -28,7 +35,7 @@ final class OneWayTests: XCTestCase {
     }
     
     func testGettingToDosInGlobalContext() async {
-        await Assert(in: createStore(), [
+        await Assert(in: createPipeline(), with: .initial, [
             .dispatch(.todoAction(.loadToDos)),
             .expect(.loading, in: \.todo),
             .expect(.received(ToDo.examples(count: 1)), in: \.todo),
@@ -38,10 +45,10 @@ final class OneWayTests: XCTestCase {
     }
     
     func testConcurrentDispatches() async {
-        let store = createStore()
+        let store = Store(initialState: .initial, pipeline: createPipeline())
         let receivedStateChanges: Task<[GlobalState], Never> = Task {
             var states: [GlobalState] = []
-            for await state in store.currentState {
+            for await state in await store.currentState {
                 states.append(state)
                 if states.count == 6 { break }
             }

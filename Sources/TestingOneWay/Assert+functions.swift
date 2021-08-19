@@ -21,6 +21,27 @@ public func AssertStates<Middleware: MiddlewareProtocol>(
     )
 }
 
+public func AssertStates<Middleware: MiddlewareProtocol>(
+    in pipeline: Pipeline<Middleware>,
+    with initialState: Middleware.State,
+    for action: Middleware.Action,
+    _ states: [Middleware.State],
+    file: StaticString = #file,
+    line: UInt = #line
+) async where Middleware.State: Equatable {
+    await AssertStates(
+        in:
+            Store<Middleware>(
+                initialState: initialState,
+                pipeline: pipeline
+            ),
+        for: action,
+        states,
+        file: file,
+        line: line
+    )
+}
+
 public func Assert<Middleware: MiddlewareProtocol>(
     in store: Store<Middleware>,
     _ runningEvents: [Event<Middleware.Action, Middleware.State>],
@@ -42,6 +63,24 @@ public func Assert<Middleware: MiddlewareProtocol>(
     }
 }
 
+public func Assert<Middleware: MiddlewareProtocol>(
+    in pipeline: Pipeline<Middleware>,
+    with initialState: Middleware.State,
+    _ runningEvents: [Event<Middleware.Action, Middleware.State>],
+    file: StaticString = #file,
+    line: UInt = #line
+) async {
+    await Assert(
+        in: Store<Middleware>(
+            initialState: initialState,
+            pipeline: pipeline
+        ),
+        runningEvents,
+        file: file,
+        line: line
+    )
+}
+
 func AssertStates<Middleware: MiddlewareProtocol>(
     in store: Store<Middleware>,
     for action: Middleware.Action,
@@ -56,7 +95,7 @@ func AssertStates<Middleware: MiddlewareProtocol>(
     let observingTask = Task<[Middleware.State], Never> {
         var observedStates: [Middleware.State] = []
         var observedStatesCount = 0
-        for await observedState in store.currentState {
+        for await observedState in await store.currentState {
             observedStates.append(observedState)
             observedStatesCount.increment()
             if observedStatesCount == states.count {

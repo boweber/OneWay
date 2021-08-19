@@ -1,6 +1,4 @@
-import OneWay
-
-enum TodoState: Sendable, Initialisable, Equatable {
+enum TodoState: Sendable, Equatable {
     case initial
     case loading
     case received([ToDo])

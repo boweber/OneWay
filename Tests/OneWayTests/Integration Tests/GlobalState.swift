@@ -5,7 +5,7 @@ struct GlobalState: Equatable, Sendable {
     var song: SongState
 }
 
-extension GlobalState: Initialisable {
+extension GlobalState {
     static var initial: GlobalState {
         GlobalState(todo: .initial, song: .initial)
     }

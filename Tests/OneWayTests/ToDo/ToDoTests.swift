@@ -4,11 +4,11 @@ import TestingOneWay
 
 final class ToDoTests: XCTestCase {
     
-    static func createToDoStore(
+    static func createToDoPipeline(
         dismissedAction: @escaping (TodoAction) -> Void = { _ in },
         stateForEachLine: @escaping (TodoState) -> Void = { _ in }
-    ) -> Store<TodoMiddleware> {
-        Store(middleware: TodoMiddleware(
+    ) -> Pipeline<TodoMiddleware> {
+        Pipeline(middleware: TodoMiddleware(
             dismissedAction: dismissedAction,
             stateForEachLine: stateForEachLine)
         ) { action, state in
@@ -29,7 +29,8 @@ final class ToDoTests: XCTestCase {
     
     func testExample() async throws {
         await AssertStates(
-            in: ToDoTests.createToDoStore(),
+            in: ToDoTests.createToDoPipeline(),
+            with: .initial,
             for: .loadToDos,
             [
                 .loading,
@@ -48,9 +49,10 @@ final class ToDoTests: XCTestCase {
         ]
         
         await AssertStates(
-            in: ToDoTests.createToDoStore(stateForEachLine: { state in
+            in: ToDoTests.createToDoPipeline(stateForEachLine: { state in
                 XCTAssertEqual(state, expectedCurrentState.removeFirst())
             }),
+            with: .initial,
             for: .loadToDos,
             [
                 .loading,
