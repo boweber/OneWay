@@ -17,3 +17,16 @@ public struct LiftedMiddleware<GlobalAction: Sendable, GlobalState: Sendable, Mi
         )
     }
 }
+
+extension MiddlewareProtocol where State == Never {
+    func liftState<GlobalState>(
+        to stateType: GlobalState.Type = GlobalState.self
+    ) -> LiftedMiddleware<Action, GlobalState, Self> {
+        LiftedMiddleware(
+            base: self,
+            input: { $0 },
+            output: { $0 },
+            state: { _ in fatalError() }
+        )
+    }
+}

@@ -42,12 +42,7 @@ extension Pipeline {
         middleware: M, _ reduce: @escaping Reducer<A, S>
     ) where M.State == Never, M.Action == A, Middleware == LiftedMiddleware<A, S, M> {
         self.init(
-            middleware: LiftedMiddleware<Action, State, M>(
-                base: middleware,
-                input: { $0 },
-                output: { $0 },
-                state: { _ in fatalError() }
-            ),
+            middleware: middleware.liftState(to: S.self),
             reducer: reduce
         )
     }

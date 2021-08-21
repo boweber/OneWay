@@ -11,3 +11,7 @@ Contributions are very welcome!
 
 - [SwiftRex](https://github.com/SwiftRex/SwiftRex)
 - [The Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture#what-is-the-composable-architecture)
+
+## Notes
+
+- Due to efficiency problems the type erasing middleware was removed. See [swift forums](https://forums.swift.org/t/anyasyncsequence/50828/2) for more details.
