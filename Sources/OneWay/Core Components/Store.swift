@@ -15,7 +15,7 @@ public actor Store<Middleware: MiddlewareProtocol> {
         self.idFactory = sequence(first: 1, next: {$0 + 1})
     }
     
-    public convenience init(initialState: State, @PipelineBuilder<Middleware> _ builder: () -> Pipeline<Middleware>) {
+    public convenience init(initialState: State, @PipelineBuilder _ builder: () -> Pipeline<Middleware>) {
         self.init(initialState: initialState, pipeline: builder())
     }
 
@@ -28,7 +28,7 @@ public actor Store<Middleware: MiddlewareProtocol> {
     }
 
     @discardableResult
-    public func dispatch(@Tracing _ action: Action, priority: TaskPriority? = nil) -> DispatchID {
+    public func dispatch(_ action: Action, priority: TaskPriority? = nil) -> DispatchID {
         let id = idFactory.next()!
         cancellableTasks[id] = Task(priority: priority) {
             defer { cancellableTasks[id] = nil }

@@ -1,5 +1,5 @@
 @resultBuilder
-public struct PipelineBuilder<Middleware: MiddlewareProtocol> {
+public struct PipelineBuilder {
     public static func buildBlock<LHS: MiddlewareProtocol, RHS: MiddlewareProtocol>(
         _ middleware: LHS,
         _ pipeline: Pipeline<RHS>
@@ -21,12 +21,12 @@ public struct PipelineBuilder<Middleware: MiddlewareProtocol> {
     }
     
     public static func buildBlock<LHS: MiddlewareProtocol, RHS: MiddlewareProtocol>(
-        _ lhspipeline: Pipeline<LHS>,
-        _ rhspipeline: Pipeline<RHS>
+        _ lhs: Pipeline<LHS>,
+        _ rhs: Pipeline<RHS>
     ) -> Pipeline<ComposedMiddleware<LHS, RHS>> where LHS.Action == RHS.Action, LHS.State == RHS.State {
-        Pipeline(middleware: ComposedMiddleware(lhspipeline.middleware, rhspipeline.middleware)) { action, mutableState in
-            lhspipeline.reducer(action, &mutableState)
-            rhspipeline.reducer(action, &mutableState)
+        Pipeline(middleware: ComposedMiddleware(lhs.middleware, rhs.middleware)) { action, mutableState in
+            lhs.reducer(action, &mutableState)
+            rhs.reducer(action, &mutableState)
         }
     }
 }

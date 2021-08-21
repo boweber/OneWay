@@ -26,7 +26,7 @@ public struct Pipeline<Middleware: MiddlewareProtocol> {
 }
 
 extension Pipeline {
-    public init(@PipelineBuilder<Middleware> _ builder: () -> Pipeline<Middleware>) {
+    public init(@PipelineBuilder _ builder: () -> Pipeline<Middleware>) {
         self = builder()
     }
     

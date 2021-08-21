@@ -14,4 +14,4 @@ Contributions are very welcome!
 
 ## Notes
 
-- Due to efficiency problems the type erasing middleware was removed. See [swift forums](https://forums.swift.org/t/anyasyncsequence/50828/2) for more details.
+- Due to efficiency problems the type erasing middleware was removed.[See](https://forums.swift.org/t/anyasyncsequence/50828/2) for more details.
