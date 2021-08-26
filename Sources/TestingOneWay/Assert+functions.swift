@@ -97,7 +97,7 @@ func AssertStates<Middleware: MiddlewareProtocol>(
         var observedStatesCount = 0
         for await observedState in await store.currentState {
             observedStates.append(observedState)
-            observedStatesCount.increment()
+            observedStatesCount = observedStatesCount + 1
             if observedStatesCount == states.count {
                 break
             }

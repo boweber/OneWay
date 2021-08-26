@@ -4,15 +4,17 @@ public actor Store<Middleware: MiddlewareProtocol> {
     public typealias DispatchID = Int
 
     private var cancellableTasks: [DispatchID: Task<Void, Never>]
-    private var idFactory: UnfoldSequence<DispatchID, (DispatchID?, Bool)>
-    private let pipeline: Pipeline<Middleware>
+    private var lastDispatchID: DispatchID
+    private let middleware: Middleware?
+    private let reducer: Reducer<Action, State>
     @MainActor public let currentState: CurrentElement<State>
     
     public init(initialState: State, pipeline: Pipeline<Middleware>) {
-        self.pipeline = pipeline
+        self.middleware = pipeline.middleware
+        self.reducer = pipeline.reducer
         self.cancellableTasks = [:]
-        self.currentState = CurrentElement<State>(initialElement: initialState)
-        self.idFactory = sequence(first: 1, next: {$0 + 1})
+        self.currentState = CurrentElement(initialElement: initialState)
+        self.lastDispatchID = 0
     }
     
     public convenience init(initialState: State, @PipelineBuilder _ builder: () -> Pipeline<Middleware>) {
@@ -23,17 +25,18 @@ public actor Store<Middleware: MiddlewareProtocol> {
     private func updateState(with action: Action) async {
         currentState.update { [weak self] currentState in
             guard let self = self else { return }
-            self.pipeline.reducer(action, &currentState)
+            self.reducer(action, &currentState)
         }
     }
 
     @discardableResult
     public func dispatch(_ action: Action, priority: TaskPriority? = nil) -> DispatchID {
-        let id = idFactory.next()!
+        let id = lastDispatchID + 1
+        lastDispatchID = id
         cancellableTasks[id] = Task(priority: priority) {
             defer { cancellableTasks[id] = nil }
             await updateState(with: action)
-            await pipeline.middleware?.process(action, in: { @Sendable in self.currentState.currentElement }, dispatch: updateState)
+            await middleware?.process(action, in: { @Sendable in self.currentState.currentElement }, dispatch: updateState)
         }
         return id
     }

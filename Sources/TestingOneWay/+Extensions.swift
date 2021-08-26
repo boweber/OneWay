@@ -14,9 +14,3 @@ extension Array {
         return transformed
     }
 }
-
-extension Int {
-    mutating func increment(by value: Int = 1) {
-        self = self + value
-    }
-}
