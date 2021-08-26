@@ -8,12 +8,23 @@ final class SongTests: XCTestCase {
         dismissedAction: @escaping (SongAction) -> Void = { _ in },
         requestingState: @escaping (SongState) -> Void = { _ in },
         injectedError: Error? = nil
-    ) -> Pipeline<LoggerMiddleware<SongMiddleware, SongLogger>> {
+    ) -> Pipeline<LoggerMiddleware<SongMiddleware>> {
         let middleware = SongMiddleware(
             dismissedAction: dismissedAction,
             state: requestingState,
             error: injectedError
-        ).logEvents(with: SongLogger())
+        ).logEvents { context in
+            switch context {
+            case .receiving(let state):
+                print("SongMiddleware received \(state)")
+            case.dispatching(let action):
+                print("SongMiddleware dispatches \(action)")
+            case .startsProcessing(let action):
+                print("SongMiddleware starts processing \(action)")
+            case .stopsProcessing(let action):
+                print("SongMiddleware stops processing \(action)")
+            }
+        }
         
         return Pipeline(middleware: middleware) { action, mutableState in
             switch action {

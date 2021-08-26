@@ -8,7 +8,7 @@ final class OneWayTests: XCTestCase {
         injectedError: Error? = nil
     ) -> Pipeline<
         ComposedMiddleware<
-            LiftedMiddleware<GlobalAction, GlobalState, LoggerMiddleware<SongMiddleware, SongLogger>>,
+            LiftedMiddleware<GlobalAction, GlobalState, LoggerMiddleware<SongMiddleware>>,
             LiftedMiddleware<GlobalAction, GlobalState, TodoMiddleware>
         >
     > {

@@ -1,6 +1,5 @@
-public struct LoggerMiddleware<Middleware: MiddlewareProtocol, Logger>: MiddlewareProtocol {
-    let logger: Logger
-    let logging: (Logger, Context) -> Void
+public struct LoggerMiddleware<Middleware: MiddlewareProtocol>: MiddlewareProtocol {
+    let logging: (Context) -> Void
     let middleware: Middleware
     
     public func process(
@@ -8,25 +7,25 @@ public struct LoggerMiddleware<Middleware: MiddlewareProtocol, Logger>: Middlewa
         in currentState: @Sendable @escaping () async -> Middleware.State,
         dispatch: @Sendable @escaping (Middleware.Action) async -> Void
     ) async {
-        logging(logger, .startsProcessing(action))
+        logging(.startsProcessing(action))
         defer {
-            logging(logger, .stopsProcessing(action))
+            logging(.stopsProcessing(action))
         }
         
         let _dispatch: @Sendable (Action) async -> Void = { dispatchingAction in
-            logging(logger, .dispatching(action))
+            logging(.dispatching(action))
             await dispatch(dispatchingAction)
         }
         
         let _currentState: @Sendable () async -> State = {
             let currentState = await currentState()
-            logging(logger, .receiving(currentState))
+            logging(.receiving(currentState))
             return currentState
         }
         await middleware.process(action, in: _currentState, dispatch: _dispatch)
     }
     
-    public enum Context {
+    public enum Context: Sendable {
         case startsProcessing(Middleware.Action)
         case stopsProcessing(Middleware.Action)
         case dispatching(Middleware.Action)
@@ -35,10 +34,9 @@ public struct LoggerMiddleware<Middleware: MiddlewareProtocol, Logger>: Middlewa
 }
 
 extension MiddlewareProtocol {
-    public func logEvents<Logger>(
-        with logger: Logger,
-        _ log: @Sendable @escaping (Logger, LoggerMiddleware<Self, Logger>.Context) -> Void
-    ) -> LoggerMiddleware<Self, Logger> {
-        LoggerMiddleware(logger: logger, logging: log, middleware: self)
+    public func logEvents(
+        _ log: @Sendable @escaping (LoggerMiddleware<Self>.Context) -> Void
+    ) -> LoggerMiddleware<Self> {
+        LoggerMiddleware(logging: log, middleware: self)
     }
 }
