@@ -1,3 +1,4 @@
+/// A pipeline acts as a container for an optional middleware and an associated reducer.
 public struct Pipeline<Middleware: MiddlewareProtocol> {
     public typealias Action = Middleware.Action
     public typealias State = Middleware.State
@@ -5,23 +6,44 @@ public struct Pipeline<Middleware: MiddlewareProtocol> {
     let middleware: Middleware?
     let reducer: Reducer<Action, State>
     
-    public func lifted<GlobalAction: Sendable, GlobalState: Sendable>(
-        input: KeyPath<GlobalAction, Middleware.Action?>,
+    private func lifted<GlobalAction: Sendable, GlobalState: Sendable>(
+        input: @escaping (GlobalAction) -> Action?,
         output: @escaping (Middleware.Action) -> GlobalAction,
         state: WritableKeyPath<GlobalState, Middleware.State>
     ) -> Pipeline<LiftedMiddleware<GlobalAction, GlobalState, Middleware>> {
         Pipeline<LiftedMiddleware<GlobalAction, GlobalState, Middleware>>(
             middleware: middleware.map { LiftedMiddleware<GlobalAction, GlobalState, Middleware>(
                 base: $0,
-                input: { $0[keyPath: input] },
+                input: input,
                 output: output,
-                state: { $0[keyPath: state] }
+                state: { globalState in globalState[keyPath: state] }
             )
             }
         ) { globalAction, globalMutableState in
-            guard let action = globalAction[keyPath: input] else { return }
+            guard let action = input(globalAction) else { return }
             reducer(action, &globalMutableState[keyPath: state])
         }
+    }
+    
+    public func lifted<GlobalAction: Sendable, GlobalState: Sendable>(
+        input: KeyPath<GlobalAction, Middleware.Action?>,
+        output: @escaping (Middleware.Action) -> GlobalAction,
+        state: WritableKeyPath<GlobalState, Middleware.State>
+    ) -> Pipeline<LiftedMiddleware<GlobalAction, GlobalState, Middleware>> {
+        lifted(input: { $0[keyPath: input] }, output: output, state: state)
+    }
+    
+    public func lifted<GlobalAction: Sendable>(
+        input: KeyPath<GlobalAction, Middleware.Action?>,
+        output: @escaping (Middleware.Action) -> GlobalAction
+    ) -> Pipeline<LiftedMiddleware<GlobalAction, State, Middleware>> {
+        lifted(input: input, output: output, state: \.self)
+    }
+    
+    public func lifted<GlobalState: Sendable>(
+        state: WritableKeyPath<GlobalState, Middleware.State>
+    ) -> Pipeline<LiftedMiddleware<Action, GlobalState, Middleware>> {
+        lifted(input: { $0 }, output: { $0 }, state: state)
     }
 }
 
